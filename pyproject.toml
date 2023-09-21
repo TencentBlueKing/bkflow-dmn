@@ -1,0 +1,29 @@
+[build-system]
+requires = ["flit_core >=3.2,<4"]
+build-backend = "flit_core.buildapi"
+
+[project]
+name = "bkflow-dmn"
+description = "A DMN (Decision Model and Notation) Implementation for Python"
+authors = [{name = "normal-wls", email = "weishi.swee@qq.com"}]
+readme = "README.md"
+dynamic = ["version"]
+dependencies = [
+    "bkflow-feel >= 0.1.0,<2",
+]
+
+[project.optional-dependencies]
+test = [
+    "pytest >=7.0.1,<8",
+    "pytest-benchmark[histogram] >=3.4.1,<4"
+]
+
+[tool.flit.module]
+name = "bkflow_dmn"
+
+[tool.black]
+line-length = 120
+fast = true
+
+[tool.isort]
+line_length = 120
