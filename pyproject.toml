@@ -9,7 +9,8 @@ authors = [{name = "normal-wls", email = "weishi.swee@qq.com"}]
 readme = "README.md"
 dynamic = ["version"]
 dependencies = [
-    "bkflow-feel >= 0.1.0,<2",
+    "bkflow-feel >= 1.0.0,<2",
+    "pydantic <3",
 ]
 
 [project.optional-dependencies]
