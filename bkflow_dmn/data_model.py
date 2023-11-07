@@ -52,6 +52,12 @@ class SingleDecisionTable(BaseModel):
     outputs: DataTable
 
     def decide(self, facts: dict, strict_mode=True):
+        """
+        单表单次决策函数
+        :param facts: 单次决策对应的事实，对应于决策上下文
+        :param strict_mode: 是否采用严格模式，当为 True 时，决策逻辑会进行一些校验并在失败时抛出异常
+        :return: 决策结果
+        """
         feel_inputs: List[List[str]] = self.feel_exp_of_inputs
         feel_outputs: List[str] = self.outputs.rows
         parsed_inputs = [
@@ -64,12 +70,15 @@ class SingleDecisionTable(BaseModel):
         hit_policy = get_hit_policy(self.hit_policy_value, strict_mode=strict_mode)
         outputs_result = hit_policy(parsed_inputs, parsed_outputs)
         final_result = []
-        if not hit_policy.multiple_output():
-            if outputs_result:
-                final_result.append({key: value for key, value in zip(self.outputs.col_ids, outputs_result)})
-        else:
-            for outputs_result_row in outputs_result:
-                final_result.append({key: value for key, value in zip(self.outputs.col_ids, outputs_result_row)})
+        if hit_policy.multiple_output():
+            final_result.extend(
+                [
+                    {key: value for key, value in zip(self.outputs.col_ids, outputs_result_row)}
+                    for outputs_result_row in outputs_result
+                ]
+            )
+        elif outputs_result:
+            final_result.append({key: value for key, value in zip(self.outputs.col_ids, outputs_result)})
         return final_result
 
     @root_validator(skip_on_failure=True)
