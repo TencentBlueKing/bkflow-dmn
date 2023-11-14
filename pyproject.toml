@@ -13,6 +13,9 @@ dependencies = [
     "pydantic <3",
 ]
 
+[project.urls]
+Home = "https://github.com/TencentBlueKing/bkflow-dmn"
+
 [project.optional-dependencies]
 test = [
     "pytest >=7.0.1,<8",
