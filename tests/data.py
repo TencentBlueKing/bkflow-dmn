@@ -30,6 +30,39 @@ UNIQUE_SCORE_TEST_TABLE = {
     },
 }
 
+
+UNIQUE_SCORE_MULTI_ROW_FORMAT_TEST_TABLE = {
+    "title": "testing",
+    "hit_policy": "Unique",
+    "inputs": {
+        "cols": [{"id": "score"}, {"id": "sex"}],
+        "rows": [
+            ["[0..70]", '"boy"'],
+            ["(70..80]", '"boy"'],
+            ["(80..90]", '"boy"'],
+            'score in (90..100] and sex="boy"',
+            'score in [0..60] and sex="girl"',
+            ["(60..70]", '"girl"'],
+            ["(70..80]", '"girl"'],
+            ["(80..100]", '"girl"'],
+        ],
+    },
+    "outputs": {
+        "cols": [{"id": "level"}],
+        "rows": [
+            ['"bad"'],
+            ['"good"'],
+            ['"good+"'],
+            ['"good++"'],
+            ['"bad"'],
+            ['"good"'],
+            ['"good+"'],
+            ['"good++"'],
+        ],
+    },
+}
+
+
 UNIQUE_TEST_DATA = [
     (UNIQUE_SCORE_TEST_TABLE, {"score": 10, "sex": "boy"}, [{"level": "bad"}]),
     (UNIQUE_SCORE_TEST_TABLE, {"score": 80, "sex": "boy"}, [{"level": "good"}]),
@@ -37,6 +70,12 @@ UNIQUE_TEST_DATA = [
     (UNIQUE_SCORE_TEST_TABLE, {"score": 65, "sex": "girl"}, [{"level": "good"}]),
     (UNIQUE_SCORE_TEST_TABLE, {"score": 75, "sex": "girl"}, [{"level": "good+"}]),
     (UNIQUE_SCORE_TEST_TABLE, {"score": 84, "sex": "girl"}, [{"level": "good++"}]),
+    (UNIQUE_SCORE_MULTI_ROW_FORMAT_TEST_TABLE, {"score": 10, "sex": "boy"}, [{"level": "bad"}]),
+    (UNIQUE_SCORE_MULTI_ROW_FORMAT_TEST_TABLE, {"score": 80, "sex": "boy"}, [{"level": "good"}]),
+    (UNIQUE_SCORE_MULTI_ROW_FORMAT_TEST_TABLE, {"score": 95, "sex": "boy"}, [{"level": "good++"}]),
+    (UNIQUE_SCORE_MULTI_ROW_FORMAT_TEST_TABLE, {"score": 65, "sex": "girl"}, [{"level": "good"}]),
+    (UNIQUE_SCORE_MULTI_ROW_FORMAT_TEST_TABLE, {"score": 75, "sex": "girl"}, [{"level": "good+"}]),
+    (UNIQUE_SCORE_MULTI_ROW_FORMAT_TEST_TABLE, {"score": 84, "sex": "girl"}, [{"level": "good++"}]),
 ]
 
 

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from enum import Enum
-from typing import List
+from typing import List, Union
 
 from pydantic import BaseModel, root_validator
 
@@ -31,12 +31,12 @@ class DataTableField(BaseModel):
 
 class DataTable(BaseModel):
     cols: List[DataTableField]
-    rows: List[List[str]]
+    rows: List[Union[List[str], str]]
 
     @root_validator(skip_on_failure=True)
     def validate_length(cls, values: dict):
         for row in values["rows"]:
-            if len(row) != len(values["cols"]):
+            if isinstance(row, list) and len(row) != len(values["cols"]):
                 raise ValueError("the length of row should be the same as the length of cols")
         return values
 
@@ -58,7 +58,7 @@ class SingleDecisionTable(BaseModel):
         :param strict_mode: 是否采用严格模式，当为 True 时，决策逻辑会进行一些校验并在失败时抛出异常
         :return: 决策结果
         """
-        feel_inputs: List[List[str]] = self.feel_exp_of_inputs
+        feel_inputs: List[Union[List[str], str]] = self.feel_exp_of_inputs
         feel_outputs: List[str] = self.outputs.rows
         parsed_inputs = [
             all([parse_expression(feel_input, facts) for feel_input in feel_input_row])
@@ -104,6 +104,9 @@ class SingleDecisionTable(BaseModel):
 
         result = []
         for row in self.inputs.rows:
+            if isinstance(row, str):
+                result.append([row])
+                continue
             row_exps = []
             for idx, unit in enumerate(row):
                 pured_unit = unit.strip()
