@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import re
 from enum import Enum
 from typing import List, Union
 
@@ -94,31 +95,52 @@ class SingleDecisionTable(BaseModel):
     @property
     def feel_exp_of_inputs(self):
         col_ids = [col.id for col in self.inputs.cols]
-        operator_prefix = {
-            ">": "",
-            "<": "",
-            "[": " in ",
-            "(": " in ",
-        }
-        or_operator = ","
-
         result = []
         for row in self.inputs.rows:
             if isinstance(row, str):
                 result.append([row])
                 continue
-            row_exps = []
+            row_result = []
             for idx, unit in enumerate(row):
                 pured_unit = unit.strip()
                 if pured_unit == "":
                     continue
-                unit_exps = []
-                vals = [val.strip() for val in pured_unit.split(or_operator) if val.strip()]
-                for val in vals:
-                    if val[0] in operator_prefix:
-                        unit_exps.append(f"{col_ids[idx]}{operator_prefix[val[0]]}{val}")
-                    else:
-                        unit_exps.append(f"{col_ids[idx]}={val}")
-                row_exps.append(f'({" or ".join(unit_exps)})' if len(unit_exps) > 1 else unit_exps[0])
-            result.append(row_exps)
+                handler = TableUnitHandler(unit_exp=pured_unit, col_id=col_ids[idx])
+                row_result.append(handler.get_handled_exp())
+            result.append(row_result)
         return result
+
+
+class TableUnitHandler:
+    OPERATOR_PATTERNS = {
+        r"^>(.*?)": "",
+        r"^<(.*?)": "",
+        r"[\[\(](.*?)\.\.(.*?)[\]\)]": " in ",
+        r"\"(.*?)\"": "=",
+        r"-?\d+(\.\d+)?": "=",
+        r"true": "=",
+        r"false": "=",
+        r"null": "=",
+    }
+    OR_OPERATOR = ","
+
+    def __init__(self, unit_exp: str, col_id: str):
+        self.exp = unit_exp
+        self.col_id = col_id
+
+    def get_handled_exp(self):
+        exp_splices = [exp.strip() for exp in self.exp.split(self.OR_OPERATOR)]
+        union_patterns = "|".join(self.OPERATOR_PATTERNS.keys())
+
+        # 不能进行自动补全的情况
+        if any([re.fullmatch(union_patterns, exp) is None for exp in exp_splices]):
+            return self.exp
+
+        handled_exp_splices = []
+        for exp in exp_splices:
+            for pattern, operator in self.OPERATOR_PATTERNS.items():
+                if re.fullmatch(pattern, exp):
+                    handled_exp_splices.append(f"{self.col_id}{operator}{exp}")
+                    break
+
+        return " or ".join(handled_exp_splices)

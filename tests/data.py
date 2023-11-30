@@ -30,7 +30,6 @@ UNIQUE_SCORE_TEST_TABLE = {
     },
 }
 
-
 UNIQUE_SCORE_MULTI_ROW_FORMAT_TEST_TABLE = {
     "title": "testing",
     "hit_policy": "Unique",
@@ -62,7 +61,6 @@ UNIQUE_SCORE_MULTI_ROW_FORMAT_TEST_TABLE = {
     },
 }
 
-
 UNIQUE_TEST_DATA = [
     (UNIQUE_SCORE_TEST_TABLE, {"score": 10, "sex": "boy"}, [{"level": "bad"}]),
     (UNIQUE_SCORE_TEST_TABLE, {"score": 80, "sex": "boy"}, [{"level": "good"}]),
@@ -77,7 +75,6 @@ UNIQUE_TEST_DATA = [
     (UNIQUE_SCORE_MULTI_ROW_FORMAT_TEST_TABLE, {"score": 75, "sex": "girl"}, [{"level": "good+"}]),
     (UNIQUE_SCORE_MULTI_ROW_FORMAT_TEST_TABLE, {"score": 84, "sex": "girl"}, [{"level": "good++"}]),
 ]
-
 
 ANY_SCORE_TEST_TABLE = {
     "title": "testing",
