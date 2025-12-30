@@ -3,11 +3,12 @@ import re
 from enum import Enum
 from typing import List, Union
 
-from pydantic import BaseModel, root_validator
+from pydantic import BaseModel, model_validator
 
 from bkflow_feel.api import parse_expression
 
 from bkflow_dmn.hit_policy import get_hit_policy
+from bkflow_dmn.audit import log_decision, is_auditing
 
 
 class HitPolicyEnum(str, Enum):
@@ -34,12 +35,12 @@ class DataTable(BaseModel):
     cols: List[DataTableField]
     rows: List[Union[List[str], str]]
 
-    @root_validator(skip_on_failure=True)
-    def validate_length(cls, values: dict):
-        for row in values["rows"]:
-            if isinstance(row, list) and len(row) != len(values["cols"]):
+    @model_validator(mode="after")
+    def validate_length(self):
+        for row in self.rows:
+            if isinstance(row, list) and len(row) != len(self.cols):
                 raise ValueError("the length of row should be the same as the length of cols")
-        return values
+        return self
 
     @property
     def col_ids(self):
@@ -80,13 +81,28 @@ class SingleDecisionTable(BaseModel):
             )
         elif outputs_result:
             final_result.append({key: value for key, value in zip(self.outputs.col_ids, outputs_result)})
+        
+        # Log to audit trail if active
+        if is_auditing():
+            log_decision(
+                table_title=self.title,
+                facts=facts,
+                rule_results=parsed_inputs,
+                outputs=parsed_outputs,
+                final_result=final_result,
+                input_expressions=self.inputs.rows,
+                output_expressions=self.outputs.rows,
+                input_col_ids=self.inputs.col_ids,
+                output_col_ids=self.outputs.col_ids
+            )
+        
         return final_result
 
-    @root_validator(skip_on_failure=True)
-    def validate_length(cls, values: dict):
-        if len(values["inputs"].rows) != len(values["outputs"].rows):
+    @model_validator(mode="after")
+    def validate_length(self):
+        if len(self.inputs.rows) != len(self.outputs.rows):
             raise ValueError("the length of inputs should be the same as the length of outputs")
-        return values
+        return self
 
     @property
     def hit_policy_value(self):
